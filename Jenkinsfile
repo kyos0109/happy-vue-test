@@ -58,9 +58,9 @@ pipeline {
                 configFileProvider(
                     [configFile(fileId: 'lamboDev', variable: 'configFile')]) {
                     script {
-                        def remoteEnvSet = readProperties file: "$configFile"
-                        env.awsSSHUser = remoteEnvSet['awsSSHUser']
-                        env.awsFrontEndHost = remoteEnvSet['awsFrontEndHost']
+                        def remoteEnvSet      = readProperties file: "$configFile"
+                        env.awsSSHUser        = remoteEnvSet['awsSSHUser']
+                        env.awsFrontEndHost   = remoteEnvSet['awsFrontEndHost']
                         env.credentialsID_SSH = remoteEnvSet['credentialsID_SSH']
                     }
                 }
@@ -71,7 +71,7 @@ pipeline {
                         echo ${Domain}
                         ssh -o StrictHostKeyChecking=no "\${awsSSHUser}"@"\${awsFrontEndHost}" 'uptime'
                         tar -cz ./"\${GIT_BRANCH}" | ssh -o StrictHostKeyChecking=no "\${awsSSHUser}"@"\${awsFrontEndHost}" 'tar -xzf - -C ~/.'
-                        ssh -o StrictHostKeyChecking=no "\${awsSSHUser}"@"\${awsFrontEndHost}" "sudo cp -a ~/"\${GIT_BRANCH}" /usr/share/nginx/html/${Domain}"
+                        ssh -o StrictHostKeyChecking=no "\${awsSSHUser}"@"\${awsFrontEndHost}" "sudo cp -a ~/"\${GIT_BRANCH}/." /usr/share/nginx/html/${Domain}"
                         ssh -o StrictHostKeyChecking=no "\${awsSSHUser}"@"\${awsFrontEndHost}" "sudo chown root: -R /usr/share/nginx/html/${Domain}"
                     '''
                 }
