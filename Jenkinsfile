@@ -25,14 +25,13 @@ pipeline {
                     ).trim()
                 }
 
-                configFileProvider(
-                    [configFile(fileId: 'lamboDev', variable: 'configFile')]) {
+                configFileProvider([configFile(fileId: 'lamboDev', variable: 'settingEnv')]) {
                     script {
-                        def remoteEnvSet      = readProperties file: "$configFile"
-                        env.awsSSHUser        = remoteEnvSet['awsSSHUser']
-                        env.awsFrontEndHost   = remoteEnvSet['awsFrontEndHost']
-                        env.credentialsID_SSH = remoteEnvSet['credentialsID_SSH']
-                        env.telegramChatId    = remoteEnvSet['telegramChatId']
+                        def envItem = readProperties file: "$settingEnv"
+
+                        envItem.each{ key, value -> 
+                            env."${key}" = value
+                        }
                     }
                 }
             }
