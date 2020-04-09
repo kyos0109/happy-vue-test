@@ -1,3 +1,14 @@
+@NonCPS
+def getSendText() {
+    return """
+`Name: ` *${currentBuild.fullDisplayName}*
+`Author: ` *${GIT_COMMITTER_EMAIL}*
+`Status: ` *${currentBuild.result}*
+`Duration: ` *${currentBuild.durationString}*
+`URL: ` [Touch Me](${RUN_DISPLAY_URL})
+    """
+}
+
 pipeline {
 
     agent any
@@ -5,6 +16,28 @@ pipeline {
     tools {nodejs "node-13.12.0"}
 
     stages {
+        stage('Setting Info') {
+            steps {
+                script {
+                    env.GIT_COMMITTER_EMAIL = sh(
+                       script: "git --no-pager show -s --format='%ae' $GIT_COMMIT",
+                       returnStdout: true
+                    ).trim()
+                }
+
+                configFileProvider(
+                    [configFile(fileId: 'lamboDev', variable: 'configFile')]) {
+                    script {
+                        def remoteEnvSet      = readProperties file: "$configFile"
+                        env.awsSSHUser        = remoteEnvSet['awsSSHUser']
+                        env.awsFrontEndHost   = remoteEnvSet['awsFrontEndHost']
+                        env.credentialsID_SSH = remoteEnvSet['credentialsID_SSH']
+                        env.telegramChatId    = remoteEnvSet['telegramChatId']
+                    }
+                }
+            }
+        }
+
         stage('Info') {
             steps {
                 sh 'node --version'
@@ -55,16 +88,6 @@ pipeline {
             }
 
             steps {
-                configFileProvider(
-                    [configFile(fileId: 'lamboDev', variable: 'configFile')]) {
-                    script {
-                        def remoteEnvSet      = readProperties file: "$configFile"
-                        env.awsSSHUser        = remoteEnvSet['awsSSHUser']
-                        env.awsFrontEndHost   = remoteEnvSet['awsFrontEndHost']
-                        env.credentialsID_SSH = remoteEnvSet['credentialsID_SSH']
-                    }
-                }
-
                 sshagent(credentials: [env.credentialsID_SSH]) {
                     sh '''
                         Domain=`echo "\${GIT_BRANCH}" | cut -d '-' -f3`
@@ -91,7 +114,17 @@ pipeline {
 
     post {
         always {
-            sh 'echo stage end '
+            sh 'printenv'
+        }
+
+        success {
+            telegramSend(message: getSendText(), chatId: env.telegramChatId)
+        }
+        failure {
+            telegramSend(message: getSendText(), chatId: env.telegramChatId)
+        }
+        unstable {
+            telegramSend(message: getSendText(), chatId: env.telegramChatId)
         }
     }
 }
