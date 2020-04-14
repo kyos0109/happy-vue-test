@@ -77,7 +77,7 @@ pipeline {
                 sh "mv versionSet.json ./$GIT_BRANCH/."
                 sh "tar -czf ${GIT_BRANCH}.tar.gz ./$GIT_BRANCH"
                 stash "${GIT_BRANCH}.tar.gz"
-                archiveArtifacts artifacts: "${GIT_BRANCH}.tar.gz", fingerprint: true
+                archiveArtifacts artifacts: "${GIT_BRANCH}", fingerprint: true
             }
         }
 
