@@ -105,6 +105,12 @@ pipeline {
                 tag 'happy-*'
             }
 
+            input {
+                message "Deploy To Production?"
+                ok "Yes"
+                submitter "happy"
+            }
+
             steps {
                 sh 'echo "\${GIT_BRANCH}"'
             }
