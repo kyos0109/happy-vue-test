@@ -5,7 +5,7 @@ def getSendText() {
 `Author: ` *${GIT_COMMITTER_EMAIL}*
 `Status: ` *${currentBuild.result}*
 `Duration: ` *${currentBuild.durationString}*
-`URL: ` [Touch Me](${RUN_DISPLAY_URL})
+`Commit: ` [${GIT_COMMITT_HASH}](${RUN_DISPLAY_URL})
     """
 }
 
@@ -23,6 +23,11 @@ pipeline {
                        script: "git --no-pager show -s --format='%ae' $GIT_COMMIT",
                        returnStdout: true
                     ).trim()
+
+                    env.GIT_COMMITT_HASH = sh(
+                       script: "echo $GIT_COMMIT",
+                       returnStdout: true
+                    ).trim().take(8)
                 }
 
                 configFileProvider([configFile(fileId: 'lamboDev', variable: 'settingEnv')]) {
