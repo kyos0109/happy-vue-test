@@ -99,22 +99,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Deploy - Production') {
-            when {
-                tag 'happy-*'
-            }
-
-            input {
-                message "Deploy To Production?"
-                ok "Yes"
-                submitter "happy"
-            }
-
-            steps {
-                sh 'echo "\${GIT_BRANCH}"'
-            }
-        }
     }
 
     post {
