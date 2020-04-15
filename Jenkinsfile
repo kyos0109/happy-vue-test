@@ -102,7 +102,7 @@ pipeline {
 
         stage('Deploy - Production') {
             when {
-                tag pattern: '^refs/tags/happy-*', comparator: "REGEXP"
+                tag pattern: '^release-*', comparator: "REGEXP"
             }
 
             steps {
