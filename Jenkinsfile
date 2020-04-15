@@ -5,7 +5,7 @@ def getSendText() {
 `Author: ` *${GIT_COMMITTER_EMAIL}*
 `Status: ` *${currentBuild.result}*
 `Duration: ` *${currentBuild.durationString}*
-`URL: ` [Touch Me](${RUN_DISPLAY_URL})
+`Commit: ` [${GIT_COMMITT_HASH}](${RUN_DISPLAY_URL})
     """
 }
 
@@ -23,6 +23,11 @@ pipeline {
                        script: "git --no-pager show -s --format='%ae' $GIT_COMMIT",
                        returnStdout: true
                     ).trim()
+
+                    env.GIT_COMMITT_HASH = sh(
+                       script: "echo $GIT_COMMIT",
+                       returnStdout: true
+                    ).trim().take(8)
                 }
 
                 configFileProvider([configFile(fileId: 'lamboDev', variable: 'settingEnv')]) {
@@ -77,7 +82,7 @@ pipeline {
                 sh "mv versionSet.json ./$GIT_BRANCH/."
                 sh "tar -czf ${GIT_BRANCH}.tar.gz ./$GIT_BRANCH"
                 stash "${GIT_BRANCH}.tar.gz"
-                archiveArtifacts artifacts: "${GIT_BRANCH}.tar.gz", fingerprint: true
+                archiveArtifacts artifacts: "${GIT_BRANCH}/**/*.*", fingerprint: true
             }
         }
 
@@ -97,16 +102,6 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no "\${awsSSHUser}"@"\${awsFrontEndHost}" "sudo chown root: -R /usr/share/nginx/html/${Domain}"
                     '''
                 }
-            }
-        }
-
-        stage('Deploy - Production') {
-            when {
-                tag pattern: '^happy-*', comparator: "REGEXP"
-            }
-
-            steps {
-                sh 'echo "\${GIT_BRANCH}"'
             }
         }
     }
